@@ -1,0 +1,14 @@
+*.iml
+/.idea/
+*.class
+.DS_Store
+/target
+/.project
+/.classpath
+/.settings
+/.checkstyle
+/.metadata
+/nbproject/
+/nbactions.xml
+/out/
+/.vscode/

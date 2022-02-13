@@ -23,8 +23,8 @@ public class FireRecognition {
                 fire_video.read(frame);
                 if (frame.empty()) break;
 
-                Imgproc.GaussianBlur(frame, blur, new Size(9, 9), 0);
-                Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV);
+                Imgproc.GaussianBlur(frame, blur, new Size(21, 21), 0);
+                Imgproc.cvtColor(blur, hsv, Imgproc.COLOR_BGR2HSV);
 
                 Scalar upper = new Scalar(18, 50, 50);
                 Scalar lower = new Scalar(35, 255, 255);
@@ -35,20 +35,12 @@ public class FireRecognition {
                 // HighGui.imshow("Fire Recognition", frame);
                 // HighGui.imshow("hsv", hsv);
                 // HighGui.imshow("blur", blur);
-                Size size = new Size(frame.cols() * 0.5, frame.rows() * 0.5);
-                Imgproc.resize(output, output, size, 0, 0, Imgproc.INTER_AREA);
+                ImgProcHelper.resizeImage(frame);
+                ImgProcHelper.resizeImage(output);
 
+                if (noRed > 20) {
+                    ImgProcHelper.addText(output,"FLAME RECOGNIZED");
 
-                if (noRed > 100) {
-                    int font = Imgproc.FONT_HERSHEY_SIMPLEX;
-                    Scalar color = new Scalar(0, 0, 255);
-                    putText(output,
-                            "FLAME DETECTED",
-                            new Point(output.cols() / 4, output.rows() / 2),
-                            Imgproc.FONT_HERSHEY_COMPLEX,
-                            1,
-                            new Scalar(255, 255, 255));
-                    HighGui.imshow("This Frame", output);
                     System.out.println("Fire detected");
                 }
                 HighGui.imshow("Frame", frame);

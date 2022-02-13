@@ -1,13 +1,14 @@
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
+import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
+import static org.opencv.imgproc.Imgproc.putText;
+
 public class FireRecognition {
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws Exception {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         Mat frame = new Mat();
@@ -22,17 +23,35 @@ public class FireRecognition {
                 fire_video.read(frame);
                 if (frame.empty()) break;
 
-                Imgproc.GaussianBlur(frame, blur, new Size(15, 15), 0);
+                Imgproc.GaussianBlur(frame, blur, new Size(9, 9), 0);
                 Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV);
 
                 Scalar upper = new Scalar(18, 50, 50);
                 Scalar lower = new Scalar(35, 255, 255);
+
                 Core.inRange(hsv, upper, lower, mask);
                 Core.bitwise_and(frame, hsv, output, mask);
+                int noRed = Core.countNonZero(mask);
+                // HighGui.imshow("Fire Recognition", frame);
+                // HighGui.imshow("hsv", hsv);
+                // HighGui.imshow("blur", blur);
+                Size size = new Size(frame.cols() * 0.5, frame.rows() * 0.5);
+                Imgproc.resize(output, output, size, 0, 0, Imgproc.INTER_AREA);
 
-                HighGui.imshow("Fire Recognition", frame);
-                HighGui.imshow("hsv", hsv);
-                HighGui.imshow("blur", blur);
+
+                if (noRed > 100) {
+                    int font = Imgproc.FONT_HERSHEY_SIMPLEX;
+                    Scalar color = new Scalar(0, 0, 255);
+                    putText(output,
+                            "FLAME DETECTED",
+                            new Point(output.cols() / 4, output.rows() / 2),
+                            Imgproc.FONT_HERSHEY_COMPLEX,
+                            1,
+                            new Scalar(255, 255, 255));
+                    HighGui.imshow("This Frame", output);
+                    System.out.println("Fire detected");
+                }
+                HighGui.imshow("Frame", frame);
                 HighGui.imshow("output", output);
                 int key = HighGui.waitKey(20);
                 if (key == 27)
@@ -44,6 +63,8 @@ public class FireRecognition {
         HighGui.destroyAllWindows();
         System.exit(0);
     }
+
+
 }
 
 //        if (fire_video.isOpened()) {

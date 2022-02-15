@@ -18,12 +18,12 @@ public class FireRecognition {
     private final Mat output = new Mat();
     private final Mat firstFrame = new Mat();
     private final Mat gray = new Mat();
-    private final Mat frameDelta = new Mat();
+    private final Mat frameDiff = new Mat();
     private final Mat thresh = new Mat();
 
     private boolean detectionByColor() {
-        VideoCapture fire_video = new VideoCapture("firevideo.mp4");
-        int noRed = 0;
+        VideoCapture fire_video = new VideoCapture("Slow Motion Fire Background  Fire Backgrounds.mp4");
+        int nrRed = 0;
         if (fire_video.isOpened()) {
             while (true) {
                 fire_video.read(frame);
@@ -37,16 +37,16 @@ public class FireRecognition {
 
                 Core.inRange(hsv, upper, lower, mask);
                 Core.bitwise_and(frame, hsv, output, mask);
-                noRed = Core.countNonZero(mask);
+                nrRed = Core.countNonZero(mask);
                 // HighGui.imshow("Fire Recognition", frame);
                 // HighGui.imshow("hsv", hsv);
                 // HighGui.imshow("blur", blur);
                 ImgProcHelper.resizeImage(frame);
                 ImgProcHelper.resizeImage(output);
 
-                if (noRed > 20) {
-                    ImgProcHelper.addText(output, "FLAME RECOGNIZED");
-                    System.out.println("Fire detected");
+                if (nrRed > 100) {
+                    ImgProcHelper.addText(frame, "FLAME RECOGNIZED");
+                   // System.out.println("Fire detected");
                 }
                 HighGui.imshow("Frame", frame);
                 HighGui.imshow("output", output);
@@ -56,51 +56,48 @@ public class FireRecognition {
             }
         }
         HighGui.destroyAllWindows();
-        return noRed > 20;
+        return nrRed > 100;
     }
 
     private boolean detectionByMovement() {
 
         List<MatOfPoint> cnts = new ArrayList<MatOfPoint>();
-        VideoCapture camera = new VideoCapture("firevideo.mp4");
-        if (camera.isOpened()) {
+        VideoCapture fire_video = new VideoCapture("Slow Motion Fire Background  Fire Backgrounds.mp4");
+        if (fire_video.isOpened()) {
             while (true) {
-                camera.read(frame);
+                fire_video.read(frame);
                 if (frame.empty()) {
                     break;
                 }
 
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                camera.read(frame);
+                fire_video.read(frame);
                 //convert to grayscale and set the first frame
                 Imgproc.cvtColor(frame, firstFrame, Imgproc.COLOR_BGR2GRAY);
                 Imgproc.GaussianBlur(firstFrame, firstFrame, new Size(21, 21), 0);
 
-                while (camera.read(frame)) {
+                while (fire_video.read(frame)) {
                     //convert to grayscale
                     Imgproc.cvtColor(frame, gray, Imgproc.COLOR_BGR2GRAY);
                     Imgproc.GaussianBlur(gray, gray, new Size(21, 21), 0);
 
                     //compute difference between first frame and current frame
-                    Core.absdiff(firstFrame, gray, frameDelta);
-                    Imgproc.threshold(frameDelta, thresh, 25, 255, Imgproc.THRESH_BINARY);
+                    Core.absdiff(firstFrame, gray, frameDiff);
+                    Imgproc.threshold(frameDiff, thresh, 25, 255, Imgproc.THRESH_BINARY);
 
-                    Imgproc.dilate(thresh, thresh, new Mat(), new Point(-1, -1), 2);
+                    Imgproc.erode(thresh, thresh, new Mat(), new Point(-1, -1), 2);
                     Imgproc.findContours(thresh, cnts, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
                     for (MatOfPoint cnt : cnts) {
                         if (Imgproc.contourArea(cnt) < 500) {
                             continue;
                         }
-
+                       // HighGui.imshow("threshold",thresh);
                         return true;
                     }
                 }
+                int key = HighGui.waitKey(20);
+                if (key == 27)
+                    break;
             }
         }
         return false;
@@ -109,7 +106,7 @@ public class FireRecognition {
     public void showFire() {
         if (detectionByMovement()) {
             if (detectionByColor()) {
-                System.out.println("Fireee");
+                System.out.println("Flame detected");
             } else {
                 System.out.println("No colour detected");
             }

@@ -61,7 +61,7 @@ public class FireRecognition {
 
     private boolean detectionByMovement() {
 
-        List<MatOfPoint> cnts = new ArrayList<MatOfPoint>();
+        List<MatOfPoint> cnts = new ArrayList<>();
         VideoCapture fire_video = new VideoCapture("Slow Motion Fire Background  Fire Backgrounds.mp4");
         if (fire_video.isOpened()) {
             while (true) {
@@ -71,16 +71,15 @@ public class FireRecognition {
                 }
 
                 fire_video.read(frame);
-                //convert to grayscale and set the first frame
+
                 Imgproc.cvtColor(frame, firstFrame, Imgproc.COLOR_BGR2GRAY);
                 Imgproc.GaussianBlur(firstFrame, firstFrame, new Size(21, 21), 0);
 
                 while (fire_video.read(frame)) {
-                    //convert to grayscale
+
                     Imgproc.cvtColor(frame, gray, Imgproc.COLOR_BGR2GRAY);
                     Imgproc.GaussianBlur(gray, gray, new Size(21, 21), 0);
 
-                    //compute difference between first frame and current frame
                     Core.absdiff(firstFrame, gray, frameDiff);
                     Imgproc.threshold(frameDiff, thresh, 25, 255, Imgproc.THRESH_BINARY);
 
